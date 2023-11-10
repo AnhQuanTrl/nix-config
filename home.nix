@@ -9,11 +9,16 @@
       neovim = inputs.neovim.packages.${system}.default.override {
         inherit ((builtins.getFlake "github:NixOS/nixpkgs/d4758c3f27804693ebb6ddce2e9f6624b3371b08").legacyPackages.${system}) libvterm-neovim;
       };
-    })  
+    })
   ];
-  
+
   programs.home-manager.enable = true;
-  programs.git.enable = true;
+  programs.git = {
+    enable = true;
+    extraConfig = {
+      pull.rebase = false;
+    };
+  };
   programs.bash.enable = true;
   programs.nix-index = {
     enable = true;
@@ -53,13 +58,34 @@
         fi
       '';
     };
+  programs.ssh = {
+    enable = true;
+    matchBlocks = {
+      "github.com" = {
+        hostname = "github.com";
+        identityFile = "~/.ssh/github";
+      };
+    };
+  };
+
+  sops = {
+    age.keyFile = "${config.xdg.configHome}/sops/age/keys.txt";
+    secrets = {
+      ssh_github = {
+        path = "${config.home.homeDirectory}/.ssh/github";
+        sopsFile = ./secrets/ssh/github;
+        format = "binary";
+      };
+    };
+  };
 
   home.packages = [
     pkgs.neovim
   ];
 
-  home.file.".p10k.sh".source = config.lib.file.mkOutOfStoreSymlink (dotfilesLib.runtimePath /home/betelgeuse/nix-config ./.p10k.sh);
-  
+  home.file.".p10k.sh".source = config.lib.file.mkOutOfStoreSymlink (dotfilesLib.runtimePath "${config.home.homeDirectory}/nix-config" ./.p10k.sh);
+  home.file."./.ssh/github.pub".source = config.lib.file.mkOutOfStoreSymlink (dotfilesLib.runtimePath "${config.home.homeDirectory}/nix-config" ./secrets/ssh/github.pub);
+
   xdg.configFile."nvim" = {
     source = config.lib.file.mkOutOfStoreSymlink (dotfilesLib.runtimePath /home/betelgeuse/nix-config ./nvim);
     recursive = true;

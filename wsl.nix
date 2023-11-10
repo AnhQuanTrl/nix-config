@@ -40,6 +40,8 @@
     gnumake
     ripgrep
     fd
+    age
+    sops
   ];
 
    users.defaultUserShell = pkgs.zsh;

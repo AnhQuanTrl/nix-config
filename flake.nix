@@ -12,10 +12,10 @@
       url = "github:nix-community/home-manager/release-23.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    neovim = { 
+    neovim = {
       url = "github:neovim/neovim?dir=contrib";
       inputs.nixpkgs.follows = "nixpkgs";
-    };  
+    };
     nix-index-database = {
       url = "github:Mic92/nix-index-database";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -23,9 +23,13 @@
     flake-utils = {
       url = "github:numtide/flake-utils";
     };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
-    
-  outputs = { self, nixpkgs, nixos-wsl, home-manager, nix-index-database, flake-utils, ... } @ inputs:
+
+  outputs = { self, nixpkgs, nixos-wsl, home-manager, nix-index-database, flake-utils, sops-nix, ... } @ inputs:
     let
       systems = [ "x86_64-linux" ];
       system = "x86_64-linux";
@@ -33,27 +37,27 @@
       pkgs = nixpkgs.legacyPackages.${system};
       dotfilesLib = {
       	runtimePath = runtimeRoot: path:
-	  let
-	    rootStr = toString self;
-	    pathStr = toString path;
-	  in assert lib.assertMsg (lib.hasPrefix rootStr pathStr)
-            "${pathStr} does not start with ${rootStr}";
-	  runtimeRoot + lib.removePrefix rootStr pathStr;
+        let
+          rootStr = toString self;
+          pathStr = toString path;
+        in assert lib.assertMsg (lib.hasPrefix rootStr pathStr)
+                "${pathStr} does not start with ${rootStr}";
+        runtimeRoot + lib.removePrefix rootStr pathStr;
       };
     in {
       nixosConfigurations = {
         orion = nixpkgs.lib.nixosSystem {
           inherit system;
-                    
-          modules = [ 
+
+          modules = [
             nixos-wsl.nixosModules.wsl
             ./wsl.nix
           ];
-        
+
           specialArgs = {
             inherit inputs;
           };
-        };        
+        };
       };
 
       homeConfigurations = {
@@ -61,13 +65,14 @@
           inherit pkgs;
 
           modules = [
-	    nix-index-database.hmModules.nix-index
-	    ./home.nix 
-	  ];
-	  extraSpecialArgs = {
+      	    nix-index-database.hmModules.nix-index
+            sops-nix.homeManagerModules.sops
+	          ./home.nix
+	        ];
+          extraSpecialArgs = {
             inherit inputs;
             inherit system;
-	    inherit dotfilesLib;
+            inherit dotfilesLib;
           };
         };
       };
