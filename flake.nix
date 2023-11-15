@@ -29,52 +29,69 @@
     };
   };
 
-  outputs = { self, nixpkgs, nixos-wsl, home-manager, nix-index-database, flake-utils, sops-nix, ... } @ inputs:
-    let
-      systems = [ "x86_64-linux" ];
-      lib = nixpkgs.lib;
-      dotfilesLib = {
-      	runtimePath = runtimeRoot: path:
-        let
-          rootStr = toString self;
-          pathStr = toString path;
-        in assert lib.assertMsg (lib.hasPrefix rootStr pathStr)
-                "${pathStr} does not start with ${rootStr}";
-        runtimeRoot + lib.removePrefix rootStr pathStr;
-      };
-      nixosSystem = modules: nixpkgs.lib.nixosSystem {
+  outputs = {
+    self,
+    nixpkgs,
+    nixos-wsl,
+    home-manager,
+    nix-index-database,
+    flake-utils,
+    sops-nix,
+    ...
+  } @ inputs: let
+    inherit (self) outputs;
+    systems = ["x86_64-linux"];
+    lib = nixpkgs.lib;
+    dotfilesLib = username: {
+      runtimePath = path: let
+        rootStr = toString self;
+        pathStr = toString path;
+      in
+        assert lib.assertMsg (lib.hasPrefix rootStr pathStr)
+        "${pathStr} does not start with ${rootStr}";
+          "/home/${username}/nix-config" + lib.removePrefix rootStr pathStr;
+    };
+    nixosSystem = modules:
+      nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = {
           inherit inputs;
+          inherit outputs;
         };
         inherit modules;
       };
-      homeManagerConfiguration = modules: home-manager.lib.homeManagerConfiguration {
+    homeManagerConfiguration = username: modules:
+      home-manager.lib.homeManagerConfiguration {
         pkgs = nixpkgs.legacyPackages."x86_64-linux";
         extraSpecialArgs = {
           inherit inputs;
-          inherit system;
-          inherit dotfilesLib;
+          dotfilesLib = dotfilesLib username;
+          inherit username;
         };
         inherit modules;
       };
-    in {
+    forAllSystems = nixpkgs.lib.genAttrs systems;
+  in
+    {
+      overlays = import ./overlays {inherit inputs;};
+      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
       nixosConfigurations = {
-        orion = nixosSystem [ nixos-wsl.nixosModules.wsl ./hosts/orion ];
-        lyra = nixosSystem [ hosts/lyra ];
+        orion = nixosSystem [nixos-wsl.nixosModules.wsl ./hosts/orion];
+        lyra = nixosSystem [hosts/lyra];
       };
 
       homeConfigurations = {
-        "betelgeuse@orion" = homeManagerConfiguration [
-      	    nix-index-database.hmModules.nix-index
-            sops-nix.homeManagerModules.sops
-	    ./home.nix
-	];
-        "vega@lyra" = homeManagerConfiguration [
+        "betelgeuse@orion" = homeManagerConfiguration "beltelgeuse" [
           nix-index-database.hmModules.nix-index
           sops-nix.homeManagerModules.sops
-	  ./home.nix
+          ./home
+        ];
+        "vega@lyra" = homeManagerConfiguration "vega" [
+          nix-index-database.hmModules.nix-index
+          sops-nix.homeManagerModules.sops
+          ./home
         ];
       };
-    } // flake-utils.lib.eachSystem systems (system: import ./shells nixpkgs.legacyPackages.${system});
+    }
+    // flake-utils.lib.eachSystem systems (system: import ./shells nixpkgs.legacyPackages.${system});
 }

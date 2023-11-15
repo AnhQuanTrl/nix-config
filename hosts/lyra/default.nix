@@ -1,14 +1,24 @@
 # Edit this configuration file to define what should be installed on
 # your system.  Help is available in the configuration.nix(5) man page
 # and in the NixOS manual (accessible by running ‘nixos-help’).
-
-{ config, pkgs, ... }:
-
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-    ];
+  outputs,
+  config,
+  pkgs,
+  ...
+}: {
+  imports = [
+    # Include the results of the hardware scan.
+    ./hardware-configuration.nix
+  ];
+
+  # Nix settings
+  nix = {
+    package = pkgs.nixFlakes;
+    extraOptions = ''
+      experimental-features = nix-command flakes
+    '';
+  };
 
   # Bootloader.
   boot.loader.grub.enable = true;
@@ -49,8 +59,16 @@
   # Enable the GNOME Desktop Environment.
   services.xserver.displayManager.gdm.enable = true;
   services.xserver.desktopManager.gnome.enable = true;
+  services.xserver.desktopManager.session = [
+    {
+      name = "home-manager";
+      start = ''
+        ${pkgs.stdenv.shell} $HOME/.xsession-hm &
+        waitPID=$!
+      '';
+    }
+  ];
 
-  # Enable I3 Window Manager
   services.xserver.windowManager.i3 = {
     enable = true;
     extraPackages = with pkgs; [
@@ -99,22 +117,35 @@
   users.users.vega = {
     isNormalUser = true;
     description = "Vega";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = ["networkmanager" "wheel"];
     packages = with pkgs; [
       firefox
-    #  thunderbird
+      #  thunderbird
     ];
+    shell = pkgs.zsh;
   };
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
+  # Add overlays
+  nixpkgs.overlays = [
+    outputs.overlays.unstable-packages
+  ];
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
-  #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  #  wget
+    #  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    #  wget
+    gcc
     git
+    unzip
+    nodejs
+    unstable.go
+    gnumake
+    ripgrep
+    fd
+    sops
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -124,6 +155,8 @@
   #   enable = true;
   #   enableSSHSupport = true;
   # };
+  programs.nix-ld.enable = true;
+  programs.zsh.enable = true;
 
   # List services that you want to enable:
 
@@ -143,5 +176,4 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "23.05"; # Did you read the comment?
-
 }

@@ -1,5 +1,5 @@
-{ pkgs, ... } : with pkgs;
-{
+{pkgs, ...}:
+with pkgs; {
   devShells = {
     neovim = mkShell {
       NIX_LD_LIBRARY_PATH = lib.makeLibraryPath [
