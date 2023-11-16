@@ -1,0 +1,5 @@
+{
+  imports = [
+    ./random-background.nix
+  ];
+}

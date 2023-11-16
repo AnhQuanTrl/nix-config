@@ -7,6 +7,10 @@
   username,
   ...
 }: {
+  disabledModules = [ "services/random-background.nix" ];
+
+  imports = [ ../modules/home-manager ];
+
   home = {
     inherit username;
     homeDirectory = "/home/${username}";
@@ -53,7 +57,7 @@
     enableCompletion = true;
     oh-my-zsh.enable = true;
     oh-my-zsh.theme = "powerlevel10k/powerlevel10k";
-    oh-my-zsh.plugins = ["git" "git-commit"];
+    oh-my-zsh.plugins = ["git"];
     oh-my-zsh.custom = "${customDir}";
     enableSyntaxHighlighting = true;
     enableAutosuggestions = true;
@@ -81,7 +85,27 @@
   };
   programs.alacritty = {
     enable = true;
+    settings = {
+      window.opacity = 0.6;
+      font.normal.family = "FiraCode Nerd Font";
+    };
   };
+  programs.feh.enable = true;
+
+  services.picom = {
+    enable = true;
+  };
+  services.betterlockscreen = {
+    enable = true;
+    arguments = [ "dim" ];
+  };
+  services.random-background = {
+    enable = true;
+    imageDirectory = "%h/Wallpapers";
+    display = "scale";
+  };
+
+  fonts.fontconfig.enable = true;
 
   xsession.enable = true;
   xsession.scriptPath = ".xsession-hm";
@@ -98,10 +122,41 @@
     in {
       inherit modifier;
       inherit terminal;
+      fonts = {
+        names = ["FiraCode Nerd Font"];
+        size = 11.0;
+      };
+      startup = [
+        # {
+        #   command = "${pkgs.feh}/bin/feh --bg-scale ~/Wallpapers/nixppuccin.png";
+        #   always = true;
+        #   notification = false;
+        # }
+        {
+          command = "source ~/.fehbg";
+          always = true;
+          notification = false;
+        }
+      ];
+      modes = {
+        resize = {
+          "Left" = "resize shrink width 10 px or 10 ppt";
+          "Down" = "resize grow height 10 px or 10 ppt";
+          "Up" = "resize shrink height 10 px or 10 ppt";
+          "Right" = "resize grow width 10 px or 10 ppt";
+          "${left}" = "resize shrink width 10 px or 10 ppt";
+          "${down}" = "resize grow height 10 px or 10 ppt";
+          "${up}" = "resize shrink height 10 px or 10 ppt";
+          "${right}" = "resize grow width 10 px or 10 ppt";
+          "Escape" = "mode default";
+          "Return" = "mode default";
+          "${modifier}+r" = "mode default";
+        };
+      };
       keybindings = {
         "${modifier}+Return" = "exec ${terminal}";
         "${modifier}+Shift+q" = "kill";
-        "${modifier}+d" = "exec ${config.xsession.windowManager.i3.config.modifier}";
+        "${modifier}+d" = "exec ${config.xsession.windowManager.i3.config.menu}";
 
         "${modifier}+Left" = "focus left";
         "${modifier}+Down" = "focus down";
@@ -164,6 +219,7 @@
         "${modifier}+Shift+c" = "reload";
         "${modifier}+Shift+r" = "restart";
         "${modifier}+Shift+e" = "exec i3-nagbar -t warning -m 'Do you want to exit i3?' -b 'Yes' 'i3-msg exit'";
+        "${modifier}+Shift+x" = "exec loginctl lock-session & exec betterlockscreen -u ~/Wallpapers";
 
         "${modifier}+r" = "mode resize";
       };
@@ -192,6 +248,9 @@
 
   home.packages = [
     pkgs.neovim
+    pkgs.dmenu
+    (pkgs.nerdfonts.override {fonts = ["FiraCode"];})
+    pkgs.betterlockscreen
   ];
 
   home.file.".p10k.sh".source = config.lib.file.mkOutOfStoreSymlink (dotfilesLib.runtimePath ../.p10k.sh);
@@ -199,9 +258,10 @@
   home.file."./.ssh/bitbucket.pub".source = config.lib.file.mkOutOfStoreSymlink (dotfilesLib.runtimePath ../secrets/ssh/bitbucket.pub);
 
   xdg.configFile."nvim" = {
-    source = config.lib.file.mkOutOfStoreSymlink (dotfilesLib.runtimePath ../nvim);
+    source = config.lib.file.mkOutOfStoreSymlink (dotfilesLib.runtimePath ../dotconfig/nvim);
     recursive = true;
   };
+  xdg.configFile."betterlockscreenrc".source = ../dotconfig/betterlockscreenrc;
 
   home.stateVersion = "23.05";
 }
