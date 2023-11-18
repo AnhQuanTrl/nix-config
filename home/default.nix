@@ -7,9 +7,14 @@
   username,
   ...
 }: {
-  disabledModules = [ "services/random-background.nix" ];
+  disabledModules = ["services/random-background.nix"];
 
-  imports = [ ../modules/home-manager ];
+  imports = [
+    ../modules/home-manager
+    ./statusbar
+    ./mpd
+    ./menu
+  ];
 
   home = {
     inherit username;
@@ -83,9 +88,17 @@
       };
     };
   };
-  programs.alacritty = {
+  programs.alacritty = let
+    theme = pkgs.fetchFromGitHub {
+      owner = "catppuccin";
+      repo = "alacritty";
+      rev = "main";
+      hash = "sha256-w9XVtEe7TqzxxGUCDUR9BFkzLZjG8XrplXJ3lX6f+x0=";
+    };
+  in {
     enable = true;
     settings = {
+      import = ["${theme}/catppuccin-mocha.yml"];
       window.opacity = 0.6;
       font.normal.family = "FiraCode Nerd Font";
     };
@@ -94,10 +107,22 @@
 
   services.picom = {
     enable = true;
+    shadow = true;
+    shadowOffsets = [(-17) (-7)];
+    shadowOpacity = 0.5;
+    shadowExclude = [
+      "class_g = 'Polybar'"
+    ];
+    fade = true;
+    fadeDelta = 10;
+    fadeSteps = [0.03 0.03];
+    settings = {
+      shadow-radius = 20;
+    };
   };
   services.betterlockscreen = {
     enable = true;
-    arguments = [ "dim" ];
+    arguments = ["dim"];
   };
   services.random-background = {
     enable = true;
@@ -110,7 +135,14 @@
   xsession.enable = true;
   xsession.scriptPath = ".xsession-hm";
   xsession.profilePath = ".xprofile-hm";
-  xsession.windowManager.i3 = {
+  xsession.windowManager.i3 = let
+    lavender = "#b4befe";
+    base = "#1e1e2e";
+    text = "#cdd6f4";
+    rosewater = "#f5e0dc";
+    overlay0 = "#6c7086";
+    peach = "#fab387";
+  in {
     enable = true;
     config = let
       modifier = "Mod4";
@@ -126,6 +158,57 @@
         names = ["FiraCode Nerd Font"];
         size = 11.0;
       };
+      bars = [];
+      gaps = {
+        inner = 15;
+        outer = 15;
+      };
+      window = {
+        titlebar = false;
+        border = 2;
+      };
+      floating = {
+        titlebar = false;
+        border = 2;
+      };
+      focus.followMouse = false;
+      colors = {
+        focused = {
+          border = lavender;
+          childBorder = lavender;
+          background = base;
+          text = text;
+          indicator = rosewater;
+        };
+        focusedInactive = {
+          border = overlay0;
+          childBorder = overlay0;
+          background = base;
+          text = text;
+          indicator = rosewater;
+        };
+        unfocused = {
+          border = overlay0;
+          childBorder = overlay0;
+          background = base;
+          text = text;
+          indicator = rosewater;
+        };
+        urgent = {
+          border = peach;
+          childBorder = peach;
+          background = base;
+          text = peach;
+          indicator = overlay0;
+        };
+        placeholder = {
+          border = overlay0;
+          childBorder = overlay0;
+          background = base;
+          text = text;
+          indicator = overlay0;
+        };
+      };
       startup = [
         # {
         #   command = "${pkgs.feh}/bin/feh --bg-scale ~/Wallpapers/nixppuccin.png";
@@ -134,6 +217,11 @@
         # }
         {
           command = "source ~/.fehbg";
+          always = true;
+          notification = false;
+        }
+        {
+          command = "systemctl --user restart polybar";
           always = true;
           notification = false;
         }
@@ -227,7 +315,7 @@
   };
 
   xresources.properties = {
-    "Xft.dpi" = 144;
+    "Xft.dpi" = 96;
   };
 
   sops = {
@@ -244,6 +332,7 @@
         format = "binary";
       };
     };
+    defaultSopsFile = ../secrets/default.yaml;
   };
 
   home.packages = [
@@ -251,12 +340,17 @@
     pkgs.dmenu
     (pkgs.nerdfonts.override {fonts = ["FiraCode"];})
     pkgs.betterlockscreen
+    pkgs.material-design-icons
+    pkgs.pulseaudio
+    pkgs.btop
+    pkgs.papirus-icon-theme
   ];
 
   home.file.".p10k.sh".source = config.lib.file.mkOutOfStoreSymlink (dotfilesLib.runtimePath ../.p10k.sh);
   home.file."./.ssh/github.pub".source = config.lib.file.mkOutOfStoreSymlink (dotfilesLib.runtimePath ../secrets/ssh/github.pub);
   home.file."./.ssh/bitbucket.pub".source = config.lib.file.mkOutOfStoreSymlink (dotfilesLib.runtimePath ../secrets/ssh/bitbucket.pub);
 
+  xdg.userDirs.enable = true;
   xdg.configFile."nvim" = {
     source = config.lib.file.mkOutOfStoreSymlink (dotfilesLib.runtimePath ../dotconfig/nvim);
     recursive = true;

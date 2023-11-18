@@ -1,30 +1,33 @@
 # Override corresponding home-manager modules
-{ config, lib, pkgs, ... }:
-
-with lib;
-
-let
-
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+with lib; let
   cfg = config.services.random-background;
 
-  flags = lib.concatStringsSep " "
-    ([ "--bg-${cfg.display}" "--randomize" ]
+  flags =
+    lib.concatStringsSep " "
+    (["--bg-${cfg.display}" "--randomize"]
       ++ lib.optional (!cfg.enableXinerama) "--no-xinerama");
-
 in {
   options = {
     services.random-background = {
-      enable = mkEnableOption "" // {
-        description = ''
-          Whether to enable random desktop background.
+      enable =
+        mkEnableOption ""
+        // {
+          description = ''
+            Whether to enable random desktop background.
 
-          Note, if you are using NixOS and have set up a custom
-          desktop manager session for Home Manager, then the session
-          configuration must have the `bgSupport`
-          option set to `true` or the background
-          image set by this module may be overwritten.
-        '';
-      };
+            Note, if you are using NixOS and have set up a custom
+            desktop manager session for Home Manager, then the session
+            configuration must have the `bgSupport`
+            option set to `true` or the background
+            image set by this module may be overwritten.
+          '';
+        };
 
       imageDirectory = mkOption {
         type = types.str;
@@ -37,7 +40,7 @@ in {
       };
 
       display = mkOption {
-        type = types.enum [ "center" "fill" "max" "scale" "tile" ];
+        type = types.enum ["center" "fill" "max" "scale" "tile"];
         default = "fill";
         description = "Display background images according to this option.";
       };
@@ -65,7 +68,7 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (mkMerge ([
+  config = mkIf cfg.enable (mkMerge [
     {
       assertions = [
         (hm.assertions.assertPlatform "services.random-background" pkgs
@@ -75,8 +78,8 @@ in {
       systemd.user.services.random-background = {
         Unit = {
           Description = "Set random desktop background using feh";
-          After = [ "graphical-session-pre.target" ];
-          PartOf = [ "graphical-session.target" ];
+          After = ["graphical-session-pre.target"];
+          PartOf = ["graphical-session.target"];
         };
 
         Service = {
@@ -85,17 +88,17 @@ in {
           IOSchedulingClass = "idle";
         };
 
-        Install = { WantedBy = [ "graphical-session.target" ]; };
+        Install = {WantedBy = ["graphical-session.target"];};
       };
     }
     (mkIf (cfg.interval != null) {
       systemd.user.timers.random-background = {
-        Unit = { Description = "Set random desktop background using feh"; };
+        Unit = {Description = "Set random desktop background using feh";};
 
-        Timer = { OnUnitActiveSec = cfg.interval; };
+        Timer = {OnUnitActiveSec = cfg.interval;};
 
-        Install = { WantedBy = [ "timers.target" ]; };
+        Install = {WantedBy = ["timers.target"];};
       };
     })
-  ]));
+  ]);
 }
