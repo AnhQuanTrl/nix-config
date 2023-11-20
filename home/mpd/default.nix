@@ -38,5 +38,14 @@ in {
         mpd_port = "6600";
       };
     };
+
+    xdg.desktopEntries.ncmpcpp = {
+      name = "NCurses Music Player Client";
+      genericName = "Music Player";
+      exec = "alacritty --class ncmpcpp -e ncmpcpp";
+      terminal = false;
+      categories = ["Application" "Audio" "Music" "Player"];
+      icon = "utilities-terminal";
+    };
   };
 }

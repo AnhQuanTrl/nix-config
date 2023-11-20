@@ -21,6 +21,7 @@
     homeDirectory = "/home/${username}";
   };
 
+
   nixpkgs.overlays = [
     (final: prev: {
       neovim = inputs.neovim.packages.${final.system}.default.override {
@@ -101,6 +102,7 @@
       import = ["${theme}/catppuccin-mocha.yml"];
       window.opacity = 0.6;
       font.normal.family = "FiraCode Nerd Font";
+      font.size = 13;
     };
   };
   programs.feh.enable = true;
@@ -166,6 +168,16 @@
       window = {
         titlebar = false;
         border = 2;
+        commands = [
+          {
+            command = "focus";
+            criteria = {class = "firefox";};
+          }
+          {
+            command = "focus";
+            criteria = {instance = "ncmpcpp";};
+          }
+        ];
       };
       floating = {
         titlebar = false;
@@ -226,6 +238,10 @@
           notification = false;
         }
       ];
+      assigns = {
+        "3" = [{class = "firefox";}];
+        "4" = [{instance = "ncmpcpp";}];
+      };
       modes = {
         resize = {
           "Left" = "resize shrink width 10 px or 10 ppt";
@@ -335,15 +351,24 @@
     defaultSopsFile = ../secrets/default.yaml;
   };
 
-  home.packages = [
-    pkgs.neovim
-    pkgs.dmenu
-    (pkgs.nerdfonts.override {fonts = ["FiraCode"];})
-    pkgs.betterlockscreen
-    pkgs.material-design-icons
-    pkgs.pulseaudio
-    pkgs.btop
-    pkgs.papirus-icon-theme
+  programs.direnv = {
+    enable = true;
+    enableZshIntegration = true;
+    nix-direnv.enable = true;
+  };
+
+  home.packages = with pkgs; [
+    neovim
+    dmenu
+    (nerdfonts.override {fonts = ["FiraCode"];})
+    betterlockscreen
+    material-design-icons
+    pulseaudio
+    btop
+    papirus-icon-theme
+    dotnet-sdk_7
+    pre-commit
+    terraform-docs
   ];
 
   home.file.".p10k.sh".source = config.lib.file.mkOutOfStoreSymlink (dotfilesLib.runtimePath ../.p10k.sh);
