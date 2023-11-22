@@ -26,28 +26,6 @@ local function register_lsp_keymaps(bufnr)
     vim.keymap.set('i', keys, func, { buffer = bufnr, desc = desc })
   end
 
-  -- Go to ...
-  nmap('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
-  nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
-  nmap('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
-  nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
-  nmap('gy', require('telescope.builtin').lsp_type_definitions, '[G]oto T[y]pe Definition')
-
-  -- List symbols ...
-  nmap('<leader>ds', require('telescope.builtin').lsp_document_symbols, '[D]ocument [S]ymbols')
-  nmap('<leader>ws', require('telescope.builtin').lsp_dynamic_workspace_symbols, '[W]orkspace [S]ymbols')
-
-  -- Hover and signature
-  -- See `:help K` for why this keymap
-  nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
-  nmap('gK', vim.lsp.buf.signature_help, 'Signature Documentation')
-  imap('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
-
-  -- Rename, code actions
-  nmap('<leader>cr', vim.lsp.buf.rename, 'Rename')
-  nvmap('<leader>ca', vim.lsp.buf.code_action, 'Action')
-  nmap('<leader>cl', vim.lsp.codelens.run, 'Codelens')
-
   -- Diagnostic keymaps
   nmap('<leader>cd', vim.diagnostic.open_float, 'Diagnostic')
   nmap(']d', vim.diagnostic.goto_next, 'Go to next diagnostic message')
@@ -80,11 +58,10 @@ return {
       Util.format.register(Util.lsp.formatter())
 
       -- Attach keymap when lsp attach
-      vim.api.nvim_create_autocmd('LspAttach', {
-        callback = function(event)
-          register_lsp_keymaps(event.buf)
-        end,
-      })
+      Util.lsp.on_attach(function(client, buffer)
+        register_lsp_keymaps(buffer)
+        require('arthur.plugins.lsp.util.keymaps').on_attach(client, buffer)
+      end)
 
       -- For dynamic capabilities
       local register_capability = vim.lsp.handlers['client/registerCapability']
@@ -102,7 +79,7 @@ return {
       local inlay_hint = vim.lsp.inlay_hint
       Util.lsp.on_attach(function(client, buffer)
         if client.supports_method 'textDocument/inlayHint' then
-          inlay_hint(buffer, true)
+          inlay_hint.enable(buffer, true)
         end
       end)
 
@@ -158,24 +135,30 @@ return {
       mlsp.setup_handlers { setup }
     end,
   },
-  {
-    'jmederosalvarado/roslyn.nvim',
-    dependencies = { 'nvim-lspconfig', 'cmp-nvim-lsp' },
-    event = 'LazyFile',
-    config = function()
-      ---@type table|nil
-      local capabilities = require('cmp_nvim_lsp').default_capabilities()
-      capabilities = vim.tbl_deep_extend('force', capabilities, {
-        workspace = {
-          didChangeWatchedFiles = {
-            dynamicRegistration = false,
-          },
-        },
-      })
-      require('roslyn').setup {
-        capabilities = vim.tbl_deep_extend('force', vim.lsp.protocol.make_client_capabilities(), capabilities),
-        on_attach = function() end,
-      }
-    end,
-  },
+  -- {
+  --   'jmederosalvarado/roslyn.nvim',
+  --   dependencies = { 'nvim-lspconfig', 'cmp-nvim-lsp' },
+  --   event = 'LazyFile',
+  --   config = function()
+  --     ---@type table|nil
+  --     local capabilities = require('cmp_nvim_lsp').default_capabilities()
+  --     capabilities = vim.tbl_deep_extend('force', capabilities, {
+  --       workspace = {
+  --         didChangeWatchedFiles = {
+  --           dynamicRegistration = false,
+  --         },
+  --       },
+  --       textDocument = {
+  --         codeLens = {
+  --           dynamicRegistration = false,
+  --         },
+  --       },
+  --     })
+  --     capabilities = vim.tbl_deep_extend('force', vim.lsp.protocol.make_client_capabilities(), capabilities)
+  --     require('roslyn').setup {
+  --       capabilities = capabilities,
+  --       on_attach = function() end,
+  --     }
+  --   end,
+  -- },
 }

@@ -88,6 +88,7 @@
     enable = true;
     x11 = true;
   };
+  virtualisation.docker.enable = true;
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
@@ -113,7 +114,7 @@
   users.users.vega = {
     isNormalUser = true;
     description = "Vega";
-    extraGroups = ["networkmanager" "wheel"];
+    extraGroups = ["networkmanager" "wheel" "docker"];
     packages = with pkgs; [
       firefox
       #  thunderbird
@@ -153,6 +154,24 @@
   #   enableSSHSupport = true;
   # };
   programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [
+    zlib
+    zstd
+    stdenv.cc.cc
+    curl
+    openssl
+    attr
+    libssh
+    bzip2
+    libxml2
+    acl
+    libsodium
+    util-linux
+    xz
+    systemd
+    glib
+    nss
+  ];
   programs.zsh.enable = true;
 
   # List services that you want to enable:

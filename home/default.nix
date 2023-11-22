@@ -184,6 +184,7 @@
         border = 2;
       };
       focus.followMouse = false;
+      focus.newWindow = "urgent";
       colors = {
         focused = {
           border = lavender;
@@ -331,7 +332,7 @@
   };
 
   xresources.properties = {
-    "Xft.dpi" = 96;
+    "Xft.dpi" = 120;
   };
 
   sops = {
@@ -359,6 +360,7 @@
 
   home.packages = with pkgs; [
     neovim
+    xclip
     dmenu
     (nerdfonts.override {fonts = ["FiraCode"];})
     betterlockscreen
@@ -366,8 +368,12 @@
     pulseaudio
     btop
     papirus-icon-theme
-    dotnet-sdk_7
+    (with dotnetCorePackages; combinePackages [
+      sdk_6_0
+      sdk_7_0
+    ])
     pre-commit
+    terraform
     terraform-docs
   ];
 
