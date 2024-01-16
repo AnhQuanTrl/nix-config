@@ -1,0 +1,56 @@
+@mixin bar-btn() {
+  color: $text;
+  transition: 200ms ease;
+  min-width: 24px;
+  min-height: 24px;
+  &:hover {
+    color: $blue;
+  }
+}
+
+.bar {
+  margin: 12px 0 12px 12px;
+  background-color: $crust;
+  border-radius: 9px;
+  padding: 20px 0;
+
+  .launcher {
+    button {
+      @include bar-btn;
+    }
+  }
+
+  .systray-revealer {
+    @include bar-btn;
+    font-size: 16px;
+  }
+
+  .dashboard-revealer {
+    @include bar-btn;
+    font-size: 16px;
+  }
+}
+
+.bar-ws-container {
+  padding: 0 24px;
+}
+
+.bar-ws {
+  @include circular;
+  min-width: 8px;
+  min-height: 8px;
+  background-color: $base;
+  transition: all 200ms ease;
+}
+
+.bar-ws-occupied {
+  @include full-rounding;
+  min-height: 16px;
+  background-color: $surface0;
+}
+
+.bar-ws-active {
+  @include full-rounding;
+  min-height: 24px;
+  background-color: $lavender;
+}

@@ -1,0 +1,126 @@
+$dashboard-width: 600px;
+$dashboard-padding: 8px;
+
+.dashboard {
+  background-color: $crust-lighter;
+  margin: 12px 0 12px 12px;
+  color: $text;
+  border-radius: 9px;
+  min-width: $dashboard-width;
+  font-size: 16px;
+
+  .header {
+    padding: 14px;
+    .avatar {
+      @include circular;
+      min-width: 24px;
+      min-height: 24px;
+      background-image: url("/home/sirius/Pictures/avatar.png");
+      background-size: 24px 24px;
+    }
+
+    .search-box {
+      @include spacing(6px, true);
+      @include button(0, $blue);
+      @include full-rounding;
+      background-color: $crust;
+      padding: 10px;
+
+      image {
+        color: $blue;
+        margin-right: 8px;
+      }
+
+      label {
+        color: transparentize($overlay0, 0.5);
+        font-size: 14px;
+      }
+    }
+  }
+
+  .body {
+    padding: $dashboard-padding;
+    background-color: $crust;
+    border-radius: 12px;
+  }
+
+  .user-welcome {
+    min-width: ($dashboard-width - $dashboard-padding * 3) / 2;
+    border-radius: 9px;
+    background-color: $crust-lighter;
+
+    .content {
+      padding: 16px 8px;
+      border-radius: 9px;
+      background-color: $crust-contrast;
+    }
+
+    .avatar {
+      min-width: 64px;
+      min-height: 64px;
+      border-radius: 6px;
+      background-image: url("/home/sirius/Pictures/avatar.png");
+      background-size: 64px 64px;
+    }
+
+    .welcome {
+      @include spacing(4px);
+    }
+
+    .msg {
+      font-size: 22px;
+    }
+
+    .panel {
+      padding: 8px 12px;
+    }
+
+    .buttons-end {
+      @include spacing(6px);
+    }
+
+    .btn {
+      min-height: 30px;
+      min-width: 30px;
+      background-color: $mantle;
+    }
+
+    .btn-powermenu {
+      @include button(4px, $blue);
+      font-size: 16px;
+    }
+
+    .btn-reboot {
+      @include button(4px, $mauve);
+      font-size: 16px;
+    }
+
+    .btn-shutdown {
+      @include button(4px, $red);
+      font-size: 14px;
+    }
+  }
+
+  .music {
+    border-radius: 9px;
+    background-color: $crust-lighter;
+
+    .cover {
+      min-width: 64px;
+      min-height: 64px;
+      border-radius: 6px;
+      background-size: 64px 64px;
+      background-image: url("assets/fallback-music.png");
+    }
+
+    .content {
+      padding: 8px 8px;
+      border-radius: 9px;
+      background-color: $crust-contrast;
+    }
+
+    .title {
+      font-size: 22px;
+    }
+  }
+}

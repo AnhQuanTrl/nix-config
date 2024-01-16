@@ -1,0 +1,51 @@
+.applauncher {
+  background-color: $crust;
+  border-radius: 9px;
+  padding: 0 9px;
+  box-shadow: 2px 4px 4px rgba(0, 0, 0, 0.333);
+  margin: 8px;
+
+  .entry {
+    all: unset;
+    padding: 12px;
+    margin: 9px 0;
+    border-radius: 9px;
+    color: $text;
+    background-color: $surface0;
+    transition: all 200ms ease;
+
+    &:focus {
+      box-shadow: inset 0 0 0 2px $lavender;
+    }
+
+    image {
+      margin-right: 8px;
+    }
+  }
+
+  .item {
+    @include flatbutton;
+    > box {
+      @include spacing(10px);
+    }
+    padding: 5px 10px;
+
+    .title {
+      color: $text;
+    }
+
+    .description {
+      color: $subtext0;
+    }
+  }
+
+  separator {
+    min-height: 1px;
+    background-color: transparentize($overlay0, 0.7);
+  }
+
+  .container {
+    min-width: 500px;
+    min-height: 400px;
+  }
+}

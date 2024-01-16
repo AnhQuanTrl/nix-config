@@ -11,16 +11,17 @@
 
   imports = [
     ../modules/home-manager
-    ./statusbar
+    ./statusbar/polybar.nix
     ./mpd
     ./menu
+    ./term/alacritty.nix
+    ./misc/nix-index.nix
   ];
 
   home = {
     inherit username;
     homeDirectory = "/home/${username}";
   };
-
 
   nixpkgs.overlays = [
     (final: prev: {
@@ -38,11 +39,6 @@
     };
   };
   programs.bash.enable = true;
-  programs.nix-index = {
-    enable = true;
-    enableBashIntegration = true;
-    enableZshIntegration = true;
-  };
   programs.zsh = let
     p10k-theme = pkgs.fetchFromGitHub {
       owner = "romkatv";
@@ -65,7 +61,9 @@
     oh-my-zsh.theme = "powerlevel10k/powerlevel10k";
     oh-my-zsh.plugins = ["git"];
     oh-my-zsh.custom = "${customDir}";
-    enableSyntaxHighlighting = true;
+    syntaxHighlighting = {
+      enable = true;
+    };
     enableAutosuggestions = true;
     initExtra = ''
       source ~/.p10k.sh
@@ -89,22 +87,7 @@
       };
     };
   };
-  programs.alacritty = let
-    theme = pkgs.fetchFromGitHub {
-      owner = "catppuccin";
-      repo = "alacritty";
-      rev = "main";
-      hash = "sha256-w9XVtEe7TqzxxGUCDUR9BFkzLZjG8XrplXJ3lX6f+x0=";
-    };
-  in {
-    enable = true;
-    settings = {
-      import = ["${theme}/catppuccin-mocha.yml"];
-      window.opacity = 0.6;
-      font.normal.family = "FiraCode Nerd Font";
-      font.size = 13;
-    };
-  };
+
   programs.feh.enable = true;
 
   services.picom = {
@@ -368,13 +351,15 @@
     pulseaudio
     btop
     papirus-icon-theme
-    (with dotnetCorePackages; combinePackages [
-      sdk_6_0
-      sdk_7_0
-    ])
+    (with dotnetCorePackages;
+      combinePackages [
+        sdk_6_0
+        sdk_7_0
+      ])
     pre-commit
     terraform
     terraform-docs
+    catppuccin-cursors
   ];
 
   home.file.".p10k.sh".source = config.lib.file.mkOutOfStoreSymlink (dotfilesLib.runtimePath ../.p10k.sh);

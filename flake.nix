@@ -2,14 +2,15 @@
   description = "NixOS WSL Configuration";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-23.05";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     nixos-wsl = {
       url = "github:nix-community/NixOS-WSL";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     home-manager = {
-      url = "github:nix-community/home-manager/release-23.05";
+      url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     neovim = {
@@ -27,16 +28,19 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-flatpak.url = "github:gmodena/nix-flatpak";
   };
 
   outputs = {
     self,
     nixpkgs,
+    nixos-hardware,
     nixos-wsl,
     home-manager,
     nix-index-database,
     flake-utils,
     sops-nix,
+    nix-flatpak,
     ...
   } @ inputs: let
     inherit (self) outputs;
@@ -67,6 +71,7 @@
           inherit inputs;
           dotfilesLib = dotfilesLib username;
           inherit username;
+          inherit outputs;
         };
         inherit modules;
       };
@@ -74,10 +79,12 @@
   in
     {
       overlays = import ./overlays {inherit inputs;};
+      packages = forAllSystems (system: import ./pkgs nixpkgs.legacyPackages.${system});
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.alejandra);
       nixosConfigurations = {
         orion = nixosSystem [nixos-wsl.nixosModules.wsl ./hosts/orion];
         lyra = nixosSystem [hosts/lyra];
+        canis-major = nixosSystem [./hosts/canis-major nixos-hardware.nixosModules.lenovo-thinkpad-t14];
       };
 
       homeConfigurations = {
@@ -90,6 +97,10 @@
           nix-index-database.hmModules.nix-index
           sops-nix.homeManagerModules.sops
           ./home
+        ];
+        "sirius@canis-major" = homeManagerConfiguration "sirius" [
+          nix-flatpak.homeManagerModules.nix-flatpak
+          ./home/bare-metal.nix
         ];
       };
     }

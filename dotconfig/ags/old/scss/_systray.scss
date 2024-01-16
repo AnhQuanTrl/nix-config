@@ -1,0 +1,19 @@
+.systray {
+  margin: 0 0 12px 12px;
+  padding: 10px;
+  background-color: $crust;
+  border-radius: 9px;
+
+  scrolledwindow {
+    min-height: 180px;
+    min-width: 180px;
+  }
+
+  .item {
+    color: $text;
+
+    icon {
+      color: red;
+    }
+  }
+}
